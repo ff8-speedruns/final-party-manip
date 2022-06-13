@@ -121,6 +121,8 @@ class Field_RNG {
          * NewRNG = (OldRNG * a + b) mod m
          **/ 
 
+        //FIELD_RNG = FIELD_RNG * 0x41c64e6d + 0x3039 is what it does to increment the rng
+
         this.state = (this.state * 0x41C64E6D + 0x3039) % 0xffffffff;
         return this.state;
     };
