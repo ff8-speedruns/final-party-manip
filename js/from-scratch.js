@@ -17,7 +17,7 @@ let options = {
     order: "reverse",
 
     // Perform a hard reset immediately before (DISC4 start data)
-    hardware_reset: true,
+    hardware_reset: false,
 
     // Use movie random number counter after Adele
     adel_rnd_counter: true,
@@ -233,6 +233,8 @@ function make_last_party_table(from, to) {
 
     // Take a good margin
     let margin = 250;
+
+    // Subtract 1. I don't know why. Don't ask.
     let size = to + margin;
 
     // Random number state
@@ -253,17 +255,30 @@ function make_last_party_table(from, to) {
     let party_arr = range(0, lastPartySize);
     party_arr = party_arr.map(x => last_party(source_arr[x + options.party_rnd_offset]));
 
+    console.log(party_arr[0]);
+    console.log(party_arr);
+    console.log(party_arr[0]);
+    console.log(source_arr[0]);
+    console.log(last_party(source_arr[0]));
+    console.log(options.party_rnd_offset);
+
     // Array of offset tables to the nearest target
     let target_offset_tbl_arr = ((arr) => {
+
+        //console.log(arr);
+        //arr is an array of arrays
         let r = [];
     
         arr.reverse().forEach((curr_party, i) => {
-          r[i] = (i == 0) ? {} : r[i - 1].map((v) => v + 1);
+            //console.log(`${i}: ${curr_party}`);
+          r[i] = (i == 0) ? [] : r[i - 1].map((v) => v + 1);
+          //console.log(r[i]);
           
           // If this party combination has all of our target members...
           if (options.targets.every(elem => curr_party.includes(elem)))
             r[i][curr_party] = 0
         });
+        throw new Error("make_last_party_table break (everything above here is done)");
     
         return r.reverse();
       })(party_arr);
@@ -304,7 +319,6 @@ function make_last_party_table(from, to) {
 
     return table;
 }
-//throw new Error("make_last_party_table break (everything above here is done)");
 
 // todo
 // Match using regular expressions
@@ -340,9 +354,11 @@ let order = orderArr.map(offset => (
 // Unique values only, please.
 order = [...new Set(order)];
 
-// If our width is an even number, let's remove the last index.
-if (isEven(options.width))
-    order.pop();
+// If our width is an even number, let's remove the top index.
+if (isEven(options.width)) {
+    const max = Math.max(...order);
+    order = order.filter(number => number !== max)
+}
 
 let min = Math.min(...order);
 let max = Math.max(...order);
@@ -363,7 +379,7 @@ switch (options.order) {
 // Build Tables
 let table = make_last_party_table(min, max);
 
-console.log(table);
+//console.log(table);
 
 // Search
 /*
