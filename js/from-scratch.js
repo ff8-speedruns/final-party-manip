@@ -5,7 +5,7 @@ let options = {
     language: "en",
 
     // Target party. Multiple settings are possible.
-    targets: ["irvine", "squall"],
+    targets: ["irvine", "squall", "zell"],
 
     // Index used as a search reference
     base: 2800,
@@ -255,13 +255,6 @@ function make_last_party_table(from, to) {
     let party_arr = range(0, lastPartySize);
     party_arr = party_arr.map(x => last_party(source_arr[x + options.party_rnd_offset]));
 
-    console.log(party_arr[0]);
-    console.log(party_arr);
-    console.log(party_arr[0]);
-    console.log(source_arr[0]);
-    console.log(last_party(source_arr[0]));
-    console.log(options.party_rnd_offset);
-
     // Array of offset tables to the nearest target
     let target_offset_tbl_arr = ((arr) => {
 
@@ -269,21 +262,22 @@ function make_last_party_table(from, to) {
         //arr is an array of arrays
         let r = [];
     
+        // The every() function behaves exactly like forEach(), except it stops iterating through the array whenever the callback function returns a falsy value.
         arr.reverse().forEach((curr_party, i) => {
             //console.log(`${i}: ${curr_party}`);
           r[i] = (i == 0) ? [] : r[i - 1].map((v) => v + 1);
-          //console.log(r[i]);
           
           // If this party combination has all of our target members...
           if (options.targets.every(elem => curr_party.includes(elem)))
-            r[i][curr_party] = 0
+            r[i][curr_party] = 0;
         });
-        throw new Error("make_last_party_table break (everything above here is done)");
+        
     
         return r.reverse();
       })(party_arr);
+      console.log(target_offset_tbl_arr);
 
-
+throw new Error("make_last_party_table break (everything above here is done)");
     // old: range(0, to).map((idx) ...
     let table = range(from, to).map((idx) => {
         //if (!idx.between(from, to)) return null;

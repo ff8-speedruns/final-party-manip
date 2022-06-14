@@ -24,11 +24,6 @@ $option = {
   # Target party. Multiple settings are possible.
     targets: [
     %i[irvine squall zell],
-    %i[irvine squall selphie],
-    %i[irvine squall rinoa],
-    %i[irvine zell selphie],
-    %i[irvine zell rinoa],
-    %i[irvine selphie rinoa],
   ],
   # These have the same meaning
   # targets: %w[Ir,Ze,Se Ir,Ze,Qu Ir,Se,Qu],
@@ -356,24 +351,20 @@ def make_last_party_table(from, to)
     last_party(source_arr[i + $option[:party_rnd_offset]])
   }
 
-  lp = last_party(source_arr[0])
-  sr = source_arr[0]
-  puts "========================"
-  puts "source_arr " + party_arr.to_s
-  puts "source_arr " + lp.to_s
-  puts "source_arr " + sr.to_s
-  puts "source_arr " + $option[:party_rnd_offset].to_s
-  puts "========================"
   # Array of offset tables to the nearest target
   target_offset_tbl_arr = lambda {|arr|
-    #puts arr
     r = []
     arr.reverse.each_with_index {|curr_party, i|
       r[i] = i.zero? ? {} : Hash[r[i - 1].map {|k, v| [k, v + 1] }]
       r[i][curr_party] = 0 if $option[:targets].include?(curr_party)
+      break if i == 5
     }
     r.reverse
   }.(party_arr)
+
+  puts "========================"
+  puts target_offset_tbl_arr.to_s
+  puts "========================"
   
   (0..to).map{|idx|
     next nil if !idx.between?(from, to) # 0...from Does not generate
