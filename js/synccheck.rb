@@ -9,6 +9,9 @@
 #   2016/06/24
 # ・Published and updated a little after
 
+######################################################
+# https://www.onlinegdb.com/online_ruby_compiler
+######################################################
 
 # Edited by awesomeWaves from original pingval script.
 # Made compatible with FF8 2013 French.

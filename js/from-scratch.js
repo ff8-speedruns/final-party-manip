@@ -322,8 +322,10 @@ function GenerateOffsetTable(party_arr) {
     //party_arr is an array of arrays
     let r = [];
     party_arr.reverse();
+    let shouldSkip = false;
     party_arr.forEach((curr_party, i) => {
         // curr_party is an array
+        shouldSkip = (i > 15)  ? true : false;
 
         // Instantiate object
         r[i] = {};
@@ -340,16 +342,13 @@ function GenerateOffsetTable(party_arr) {
         }
 
         // If this party combination has all of our target members, reset its counter to 0        
-        targets.every(elem => {
+        targets.forEach(elem => {
             let goodParty = ArrayCompare(curr_party, elem);
-            if(goodParty) {
-                let partyObj = new Object();
-                partyObj[curr_party] = 0;
-                r[i] = partyObj;
-                return false; // break out - if we matched one target we won't match any others. Save resources.
-            }
+            if(goodParty)
+                r[i][curr_party] = 0;
         });
-        //console.warn(`${i} - ${JSON.stringify(r[i])} - Current party is ${curr_party}`);
+        if(!shouldSkip)
+            console.log(`${i} - ${JSON.stringify(r[i])} - Current party is ${curr_party}`);
     });
 
     r.reverse();
