@@ -1,3 +1,28 @@
+/******** HELPER FUNCTIONS ********/
+function range(start, end) {
+    return Array(end - start + 1).fill().map((_, idx) => start + idx)
+}
+
+function isEven(num) {
+    return num % 2 === 0;
+}
+
+//https://stackoverflow.com/questions/7837456/how-to-compare-arrays-in-javascript
+// Warn if overriding existing method
+if (Array.prototype.equals)
+    console.warn("Overriding existing Array.prototype.equals. Possible causes: New API defines the method, there's a framework conflict or you've got double inclusions in your code.");
+// attach the .equals method to Array's prototype to call it on any array
+function ArrayCompare(a, b) {
+    a.sort();
+    b.sort();
+    var i = a.length;
+    while (i--) {
+        if (a[i] !== b[i]) return false;
+    }
+    return true
+}
+
+
 // Recreating the whole script from scratch using the Ruby script for logic reference.
 const Initial_State = 0x00000001;
 
@@ -5,7 +30,11 @@ let options = {
     language: "en",
 
     // Target party. Multiple settings are possible.
-    targets: ["irvine", "squall", "zell"],
+    targets: [
+        ["irvine", "squall", "zell"],
+        ["irvine", "squall", "selphie"],
+        ["irvine", "squall", "rinoa"],
+    ],
 
     // Index used as a search reference
     base: 2800,
@@ -65,26 +94,26 @@ Number.prototype.between = function (a, b) {
 // https://stackoverflow.com/questions/25888963/min-by-max-by-equivalent-functions-in-javascript
 // the only difference between minBy and maxBy is the ordering
 // function, so abstract that out
-Array.prototype.minBy = function(fn) { 
-    return this.extremumBy(fn, Math.min); 
-  };
-  
-  Array.prototype.maxBy = function(fn) { 
+Array.prototype.minBy = function (fn) {
+    return this.extremumBy(fn, Math.min);
+};
+
+Array.prototype.maxBy = function (fn) {
     return this.extremumBy(fn, Math.max);
-  };
-  
-  Array.prototype.extremumBy = function(pluck, extremum) {
-    return this.reduce(function(best, next) {
-      var pair = [ pluck(next), next ];
-      if (!best) {
-         return pair;
-      } else if (extremum.apply(null, [ best[0], pair[0] ]) == best[0]) {
-         return best;
-      } else {
-         return pair;
-      }
-    },null)[1];
-  }
+};
+
+Array.prototype.extremumBy = function (pluck, extremum) {
+    return this.reduce(function (best, next) {
+        var pair = [pluck(next), next];
+        if (!best) {
+            return pair;
+        } else if (extremum.apply(null, [best[0], pair[0]]) == best[0]) {
+            return best;
+        } else {
+            return pair;
+        }
+    }, null)[1];
+}
 
 if (options.hardware_reset) options.base = 15
 
@@ -216,16 +245,8 @@ function last_party(rnd) {
         [4, 5, 3]
     ];
 
-    let idx = Math.floor(rnd / 13) ;
+    let idx = Math.floor(rnd / 13);
     return new Party(tbl[idx]);
-}
-
-function range(start, end) {
-    return Array(end - start + 1).fill().map((_, idx) => start + idx)
-}
-
-function isEven(num) {
-    return num % 2 === 0;
 }
 
 function make_last_party_table(from, to) {
@@ -252,32 +273,13 @@ function make_last_party_table(from, to) {
 
     // Party when you go the fastest on the final map
     let lastPartySize = size - options.party_rnd_offset;
-    let party_arr = range(0, lastPartySize);
-    party_arr = party_arr.map(x => last_party(source_arr[x + options.party_rnd_offset]));
+    let party_arr = Array.from({length: lastPartySize}, (val, idx) => last_party(source_arr[idx + options.party_rnd_offset]))
 
     // Array of offset tables to the nearest target
-    let target_offset_tbl_arr = ((arr) => {
+    let target_offset_tbl_arr = GenerateOffsetTable(party_arr);
+    console.log(target_offset_tbl_arr);
 
-        //console.log(arr);
-        //arr is an array of arrays
-        let r = [];
-    
-        // The every() function behaves exactly like forEach(), except it stops iterating through the array whenever the callback function returns a falsy value.
-        arr.reverse().forEach((curr_party, i) => {
-            //console.log(`${i}: ${curr_party}`);
-          r[i] = (i == 0) ? [] : r[i - 1].map((v) => v + 1);
-          
-          // If this party combination has all of our target members...
-          if (options.targets.every(elem => curr_party.includes(elem)))
-            r[i][curr_party] = 0;
-        });
-        
-    
-        return r.reverse();
-      })(party_arr);
-      console.log(target_offset_tbl_arr);
-
-throw new Error("make_last_party_table break (everything above here is done)");
+    throw new Error("make_last_party_table break (everything above here is done)");
     // old: range(0, to).map((idx) ...
     let table = range(from, to).map((idx) => {
         //if (!idx.between(from, to)) return null;
@@ -312,6 +314,46 @@ throw new Error("make_last_party_table break (everything above here is done)");
     });
 
     return table;
+}
+
+function GenerateOffsetTable(party_arr) {
+    let targets = options.targets;
+
+    //party_arr is an array of arrays
+    let r = [];
+    party_arr.reverse();
+    party_arr.forEach((curr_party, i) => {
+        // curr_party is an array
+
+        // Instantiate object
+        r[i] = {};
+
+        if (i > 0) {
+            //TODO: Increment the number for each party from the last index
+            let lastValue = r[i - 1];
+
+            Object.keys(lastValue).map(function (key, index) {
+                r[i][key] = lastValue[key] + 1;
+            });
+
+            //r[i] = r[i - 1].map((v) => v + 1);
+        }
+
+        // If this party combination has all of our target members, reset its counter to 0        
+        targets.every(elem => {
+            let goodParty = ArrayCompare(curr_party, elem);
+            if(goodParty) {
+                let partyObj = new Object();
+                partyObj[curr_party] = 0;
+                r[i] = partyObj;
+                return false; // break out - if we matched one target we won't match any others. Save resources.
+            }
+        });
+        //console.warn(`${i} - ${JSON.stringify(r[i])} - Current party is ${curr_party}`);
+    });
+
+    r.reverse();
+    return r;
 }
 
 // todo
@@ -384,8 +426,8 @@ if (match) {
 
 }
 }
-    
-    
+
+
       {
         diff: idx - start_index, # Difference from the search start point
         index: idx,             # index

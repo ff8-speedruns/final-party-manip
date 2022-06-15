@@ -24,6 +24,8 @@ $option = {
   # Target party. Multiple settings are possible.
     targets: [
     %i[irvine squall zell],
+    %i[irvine squall selphie],
+    %i[irvine squall rinoa],
   ],
   # These have the same meaning
   # targets: %w[Ir,Ze,Se Ir,Ze,Qu Ir,Se,Qu],
@@ -352,18 +354,21 @@ def make_last_party_table(from, to)
   }
 
   # Array of offset tables to the nearest target
-  target_offset_tbl_arr = lambda {|arr|
-    r = []
-    arr.reverse.each_with_index {|curr_party, i|
-      r[i] = i.zero? ? {} : Hash[r[i - 1].map {|k, v| [k, v + 1] }]
-      r[i][curr_party] = 0 if $option[:targets].include?(curr_party)
-      break if i == 5
-    }
-    r.reverse
-  }.(party_arr)
+  target_offset_tbl_arr = lambda {|arr|  # lambda defines a function that you can call in ruby , this takes in a argument of arr (im assuming array)
+  r = [] # let R  be empty array
+  arr.reverse.each_with_index {|curr_party, i|  # reverse the array with index, then for each index (set it to curr_party)  
+    r[i] = i.zero? ? {} : Hash[r[i - 1].map {|k, v| [k, v + 1] }] # if the index is 0, do nothing, else take the previous index and then for each key with its value, increment the value, then create a hash key  of it 
+    r[i][curr_party] = 0 if $option[:targets].include?(curr_party) # set the index's key of curr_party to 0 if the global value of options, key of target includes current party
+    puts i.to_s + " - " + r[i].to_s + " - Current Party is " + curr_party.to_s
+    break if i > 50
+    #puts "curr_party " + i.to_s + " - " + curr_party.to_s if $option[:targets].include?(curr_party)
+  } 
+  r.reverse # reverse the array again
+}.(party_arr) # apply the lambda function that was specified  to the party_arr variable and then assign the resulting value to target_offset_tbl_arr
+
 
   puts "========================"
-  puts target_offset_tbl_arr.to_s
+  puts target_offset_tbl_arr[0].to_s
   puts "========================"
   
   (0..to).map{|idx|
