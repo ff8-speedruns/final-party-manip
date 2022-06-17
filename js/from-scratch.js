@@ -7,11 +7,6 @@ function isEven(num) {
     return num % 2 === 0;
 }
 
-//https://stackoverflow.com/questions/7837456/how-to-compare-arrays-in-javascript
-// Warn if overriding existing method
-if (Array.prototype.equals)
-    console.warn("Overriding existing Array.prototype.equals. Possible causes: New API defines the method, there's a framework conflict or you've got double inclusions in your code.");
-// attach the .equals method to Array's prototype to call it on any array
 function ArrayCompare(a, b) {
     a.sort();
     b.sort();
@@ -22,13 +17,10 @@ function ArrayCompare(a, b) {
     return true
 }
 
-
 // Recreating the whole script from scratch using the Ruby script for logic reference.
 const Initial_State = 0x00000001;
 
 let options = {
-    language: "en",
-
     // Target party. Multiple settings are possible.
     targets: [
         ["irvine", "squall", "zell"],
@@ -48,12 +40,6 @@ let options = {
     // Perform a hard reset immediately before (DISC4 start data)
     hardware_reset: false,
 
-    // Use movie random number counter after Adele
-    adel_rnd_counter: true,
-
-    // Use the final map random number counter
-    last_map_rnd_counter: true,
-
     // Idling duration when traveling the final map at the fastest speed
     // ps2fast_ja:22.0, ps2fast_na:22.7?, pc-fr-2013:21.5,
     last_map_duration: 21.5,
@@ -61,27 +47,8 @@ let options = {
     // If last_map_duration% 0.5 is within this range, do not wait on the last map
     last_map_safe_range: [0.10, 0.20, 0.30, 0.40],
 
-    // Characters that can be used for input. Numeric keypad / wasd / ijkl can be used by default
-    input: {
-        up: ["8", "w", "i"],
-        down: ["2", "s", "k"],
-        left: ["4", "a", "j"],
-        right: ["6", "d", "l"],
-
-        // Wildcard. If [] is specified, everything except ↑ will be treated as a wildcard.
-        any: []
-    },
-
     // Squall movement upper limit
     movements_size: 12,
-
-    // Heading width
-    left_width: 40,
-
-    // fps
-    console_fps: 60,
-    debug: false,
-    fallback_language: "en"
 }
 
 // https://stackoverflow.com/questions/14718561/how-to-check-if-a-number-is-between-two-values
@@ -90,32 +57,6 @@ Number.prototype.between = function (a, b) {
         max = Math.max.apply(Math, [a, b]);
     return this >= min && this <= max;
 };
-
-// https://stackoverflow.com/questions/25888963/min-by-max-by-equivalent-functions-in-javascript
-// the only difference between minBy and maxBy is the ordering
-// function, so abstract that out
-Array.prototype.minBy = function (fn) {
-    return this.extremumBy(fn, Math.min);
-};
-
-Array.prototype.maxBy = function (fn) {
-    return this.extremumBy(fn, Math.max);
-};
-
-Array.prototype.extremumBy = function (pluck, extremum) {
-    return this.reduce(function (best, next) {
-        var pair = [pluck(next), next];
-        if (!best) {
-            return pair;
-        } else if (extremum.apply(null, [best[0], pair[0]]) == best[0]) {
-            return best;
-        } else {
-            return pair;
-        }
-    }, null)[1];
-}
-
-if (options.hardware_reset) options.base = 15
 
 // Goal party
 //options.targets = ['squall', 'selphie', 'irvine'];
@@ -273,14 +214,14 @@ function make_last_party_table(from, to) {
 
     // Party when you go the fastest on the final map
     let lastPartySize = size - options.party_rnd_offset;
-    let party_arr = Array.from({length: lastPartySize}, (val, idx) => last_party(source_arr[idx + options.party_rnd_offset]))
+    let party_arr = Array.from({ length: lastPartySize }, (val, idx) => last_party(source_arr[idx + options.party_rnd_offset]))
 
     // Array of offset tables to the nearest target
     let target_offset_tbl_arr = GenerateOffsetTable(party_arr);
 
     // old: range(0, to).map((idx) ...
     let table = range(from, to).map((idx) => {
-        //if (!idx.between(from, to)) return null;
+        if (!idx.between(from, to)) return null;
 
         let r = {
             index: idx,
@@ -309,8 +250,8 @@ function make_last_party_table(from, to) {
 
         // Nearest target
         // https://stackoverflow.com/questions/23933246/find-minimum-in-array-of-arrays-js
-        let numbs = r.target_offset_tbl.map(x => { return x[1]||0 });
-        r.nearest_target = r.target_offset_tbl[numbs.indexOf(Math.min.apply( Math, numbs ))][0].join(",");
+        let numbs = r.target_offset_tbl.map(x => { return x[1] || 0 });
+        r.nearest_target = r.target_offset_tbl[numbs.indexOf(Math.min.apply(Math, numbs))][0].join(",");
 
         return r;
     });
@@ -342,7 +283,7 @@ function GenerateOffsetTable(party_arr) {
         // If this party combination has all of our target members, reset its counter to 0        
         targets.forEach(elem => {
             let goodParty = ArrayCompare(curr_party, elem);
-            if(goodParty)
+            if (goodParty)
                 r[i][curr_party] = 0;
         });
     });
@@ -353,62 +294,111 @@ function GenerateOffsetTable(party_arr) {
 
 // *********************************************** //
 
-//function search_last_party (pattern) {
-let start_index = options.base;
-let orderArr = range(0, options.width / 2);
+let table;
 
-let order = orderArr.map(offset => (
-    [start_index + offset, start_index - offset]
-)).flat().filter(idx => idx >= 0);
+function search_last_party(pattern) {
+    let start_index = options.base;
+    
+    // replace WASD pattern with numbers
+    pattern = pattern.replaceAll('w', '8');
+    pattern = pattern.replaceAll('a', '4');
+    pattern = pattern.replaceAll('s', '2');
+    pattern = pattern.replaceAll('d', '6');
+    pattern = pattern.replaceAll('i', '8');
+    pattern = pattern.replaceAll('j', '4');
+    pattern = pattern.replaceAll('k', '2');
+    pattern = pattern.replaceAll('l', '6');
+    console.log(pattern);
 
-// Unique values only, please.
-order = [...new Set(order)];
+    // Look for a data table matching the submitted pattern
+    let data = table.filter(x => x.movements == pattern);
 
-// If our width is an even number, let's remove the top index.
-if (isEven(options.width)) {
-    const max = Math.max(...order);
-    order = order.filter(number => number !== max)
+    // If we find a match for the pattern
+    if (data.length > 0) {
+        data.forEach(row => {
+            row.diff = row.index - start_index;
+        });
+
+        // Remove any null sets from the result array
+        // https://stackoverflow.com/questions/281264/remove-empty-elements-from-an-array-in-javascript
+        data.filter(n => n);
+
+        console.log("Match found.");
+        return data;
+    } else {
+        console.warn("No match found.");
+        return false;
+    }
+
 }
 
-let min = Math.min(...order);
-let max = Math.max(...order);
+function init() {
+    if (options.hardware_reset) options.base = 15
 
-switch (options.order) {
-    case "reverse":
-        order.reverse();
-        break;
+    let start_index = options.base;
+    let orderArr = range(0, options.width / 2);
 
-    case "ascending":
-        order.sort();
-        break;
+    let order = orderArr.map(offset => (
+        [start_index + offset, start_index - offset]
+    )).flat().filter(idx => idx >= 0);
 
-    case "descending":
-        order.sort().reverse();
-};
+    // Unique values only, please.
+    order = [...new Set(order)];
 
-// Build Tables
-let table = make_last_party_table(min, max);
+    // If our width is an even number, let's remove the top index.
+    if (isEven(options.width)) {
+        const max = Math.max(...order);
+        order = order.filter(number => number !== max)
+    }
 
-// Do the search
-let pattern = "848264444444";
+    let min = Math.min(...order);
+    let max = Math.max(...order);
 
-// Look for a data table matching the submitted pattern
-let data = table.filter(x => x.movements == pattern);
+    switch (options.order) {
+        case "reverse":
+            order.reverse();
+            break;
 
-// If we find a match for the pattern
-if(data.length > 0) {
-    data.forEach(row => {
-        row.diff = row.index - start_index;
-    });
+        case "ascending":
+            order.sort();
+            break;
 
-    // Remove any null sets from the result array
-    // https://stackoverflow.com/questions/281264/remove-empty-elements-from-an-array-in-javascript
-    data.filter(n => n);
+        case "descending":
+            order.sort().reverse();
+    };
 
-    console.log("Match found.");
-    console.log(data);
-} else {
-    console.warn("No match found.");
+    // Build Tables
+    table = make_last_party_table(min, max);
+
+    console.log("Initialization Complete.");
 }
 
-//}
+// initial table build on page load to save resources.
+init();
+
+let textbox = document.getElementById('tilts');
+let hardreset = document.getElementById('reset');
+//let pattern = "848264444444";
+
+// Listen for reset checkbox changes
+hardreset.addEventListener('change', (event) => {
+    if (event.currentTarget.checked) {
+        options.hardware_reset = true;
+    } else {
+        options.hardware_reset = false;
+    }
+
+    // rebuild RNG tables
+    init();
+})
+
+// Listen for text box changes to determine when to calculate.
+textbox.addEventListener('input', function (e) {
+    // We expect exactly 12 inputs.
+    // Don't waste processing power otherwise.
+    if (textbox.value.length == 12) {
+        let pattern = textbox.value;
+        let last_party = search_last_party(pattern);
+        console.log(last_party);
+    }
+});
