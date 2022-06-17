@@ -362,18 +362,12 @@ def make_last_party_table(from, to)
   arr.reverse.each_with_index {|curr_party, i|  # reverse the array with index, then for each index (set it to curr_party)  
     r[i] = i.zero? ? {} : Hash[r[i - 1].map {|k, v| [k, v + 1] }] # if the index is 0, do nothing, else take the previous index and then for each key with its value, increment the value, then create a hash key  of it 
     r[i][curr_party] = 0 if $option[:targets].include?(curr_party) # set the index's key of curr_party to 0 if the global value of options, key of target includes current party
-    puts i.to_s + " - " + r[i].to_s + " - Current Party is " + curr_party.to_s
-    break if i > 50
     #puts "curr_party " + i.to_s + " - " + curr_party.to_s if $option[:targets].include?(curr_party)
   } 
   r.reverse # reverse the array again
 }.(party_arr) # apply the lambda function that was specified  to the party_arr variable and then assign the resulting value to target_offset_tbl_arr
 
 
-  puts "========================"
-  puts target_offset_tbl_arr[0].to_s
-  puts "========================"
-  
   (0..to).map{|idx|
     next nil if !idx.between?(from, to) # 0...from Does not generate
     r = {
@@ -403,6 +397,9 @@ end
 # Match using regular expressions
 def last_party_match?(pattern, data)
   matchp = data[:movements] =~ pattern
+  puts "========================"
+  puts matchp.to_s
+  puts "========================"
   matchp.tap {
     if matchp || $option[:debug]
       rng_state = $option[:debug] ? "%s " % [data[:rng_state]] : ""
@@ -435,7 +432,7 @@ def search_last_party(pattern)
   table = make_last_party_table(order.min, order.max)
   
   # search
-  order.map{|idx|
+  pty = order.map{|idx|
     data = table[idx]
     if last_party_match?(pattern, data)
       {

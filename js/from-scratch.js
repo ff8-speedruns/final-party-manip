@@ -277,9 +277,7 @@ function make_last_party_table(from, to) {
 
     // Array of offset tables to the nearest target
     let target_offset_tbl_arr = GenerateOffsetTable(party_arr);
-    console.log(target_offset_tbl_arr);
 
-    throw new Error("make_last_party_table break (everything above here is done)");
     // old: range(0, to).map((idx) ...
     let table = range(from, to).map((idx) => {
         //if (!idx.between(from, to)) return null;
@@ -290,17 +288,17 @@ function make_last_party_table(from, to) {
             // source
             source: source_arr[idx],
 
-            // Random number state
-            rng_state: "%08x" % [rng_state_arr[idx]],
+            // Random number state - convert to hex value
+            rng_state: rng_state_arr[idx].toString(16),
 
-            // party
+            // !party
             party: party_arr[idx],
 
             // movements
             movements: ((arr) => {
-                let first = [0, idx - (options.movements_size - 1)].max;
-                let last = idx;
-                return arr.slice(first, last).join("")
+                let first = Math.max(0, idx - (options.movements_size - 1));
+                let last = idx + 1;
+                return arr.slice(first, last).join("");
             })(direction_arr),
 
             // Offset to the target party
@@ -309,7 +307,11 @@ function make_last_party_table(from, to) {
             ))
         };
 
-        r.nearest_target = r.target_offset_tbl.minBy((k, v) => v).first;
+        // Nearest target
+        // https://stackoverflow.com/questions/23933246/find-minimum-in-array-of-arrays-js
+        let numbs = r.target_offset_tbl.map(x => { return x[1]||0 });
+        r.nearest_target = r.target_offset_tbl[numbs.indexOf(Math.min.apply( Math, numbs ))][0].join(",");
+
         return r;
     });
 
@@ -322,23 +324,19 @@ function GenerateOffsetTable(party_arr) {
     //party_arr is an array of arrays
     let r = [];
     party_arr.reverse();
-    let shouldSkip = false;
+
     party_arr.forEach((curr_party, i) => {
-        // curr_party is an array
-        shouldSkip = (i > 15)  ? true : false;
 
         // Instantiate object
         r[i] = {};
 
         if (i > 0) {
-            //TODO: Increment the number for each party from the last index
+            // Increment the number for each party from the last index
             let lastValue = r[i - 1];
 
             Object.keys(lastValue).map(function (key, index) {
                 r[i][key] = lastValue[key] + 1;
             });
-
-            //r[i] = r[i - 1].map((v) => v + 1);
         }
 
         // If this party combination has all of our target members, reset its counter to 0        
@@ -347,34 +345,11 @@ function GenerateOffsetTable(party_arr) {
             if(goodParty)
                 r[i][curr_party] = 0;
         });
-        if(!shouldSkip)
-            console.log(`${i} - ${JSON.stringify(r[i])} - Current party is ${curr_party}`);
     });
 
     r.reverse();
     return r;
 }
-
-// todo
-// Match using regular expressions
-function last_party_match(pattern, data) {
-    let matchp = pattern.test(data.movements);
-
-    matchp.tap(() => {
-        if (matchp ?? options.debug) {
-            let rng_state = options.debug ? "%s " % [data.rng_state] : "";
-
-            puts("%s\t[%04d] %s\"%s\" %s" % [
-                matchp ? "*match*" : "",
-                data.index,
-                rng_state,
-                data.movements,
-                data.target_offset_tbl
-            ])
-        }
-    })
-}
-
 
 // *********************************************** //
 
@@ -414,24 +389,26 @@ switch (options.order) {
 // Build Tables
 let table = make_last_party_table(min, max);
 
-//console.log(table);
+// Do the search
+let pattern = "848264444444";
 
-// Search
-/*
-order.map(idx => {
-let data = table[idx];
-let match = last_party_match(pattern, data);
-if (match) {
+// Look for a data table matching the submitted pattern
+let data = table.filter(x => x.movements == pattern);
 
+// If we find a match for the pattern
+if(data.length > 0) {
+    data.forEach(row => {
+        row.diff = row.index - start_index;
+    });
+
+    // Remove any null sets from the result array
+    // https://stackoverflow.com/questions/281264/remove-empty-elements-from-an-array-in-javascript
+    data.filter(n => n);
+
+    console.log("Match found.");
+    console.log(data);
+} else {
+    console.warn("No match found.");
 }
-}
 
-
-      {
-        diff: idx - start_index, # Difference from the search start point
-        index: idx,             # index
-        data: data,
-      }
-    end
-  }.compact */
 //}
