@@ -298,7 +298,7 @@ let table;
 
 function search_last_party(pattern) {
     let start_index = options.base;
-    
+
     // replace WASD pattern with numbers
     pattern = pattern.replaceAll('w', '8');
     pattern = pattern.replaceAll('a', '4');
@@ -399,6 +399,46 @@ textbox.addEventListener('input', function (e) {
     if (textbox.value.length == 12) {
         let pattern = textbox.value;
         let last_party = search_last_party(pattern);
+        ShowResults(last_party);
         console.log(last_party);
     }
 });
+
+function ShowResults(results) {
+    let resultDiv = document.getElementById('results');
+    resultDiv.innerHTML = "";
+    console.log(results);
+
+    results.forEach(result => {
+        let parent = document.createElement("div");
+        parent.classList.add("d-flex");
+        parent.classList.add("flex-row");
+        parent.classList.add("mb-3");
+
+        let diff = document.createElement("div");
+        diff.classList.add('p-2');
+        diff.innerHTML = `Diff<br />+${result.diff}`;
+        parent.appendChild(diff);
+
+        let idx = document.createElement("div");
+        idx.classList.add('p-2');
+        idx.innerHTML = `Idx<br />${result.index}`;
+        parent.appendChild(idx);
+
+        result.target_offset_tbl.forEach(offset => {
+            let card = document.createElement("div");
+            card.classList.add('p-2');
+            card.innerHTML = `${offset[0].join(",")}<br />+${offset[1]}`;
+            parent.appendChild(card);
+        })
+        resultDiv.appendChild(parent);
+    })
+}
+
+/*
+							<div class="d-flex flex-row bd-highlight mb-3">
+								<div class="p-2 bd-highlight">Flex item 1</div>
+								<div class="p-2 bd-highlight">Flex item 2</div>
+								<div class="p-2 bd-highlight">Flex item 3</div>
+							  </div>
+                              */
