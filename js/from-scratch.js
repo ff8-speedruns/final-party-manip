@@ -297,7 +297,7 @@ function GenerateOffsetTable(party_arr) {
 let table;
 
 function search_last_party(pattern) {
-    let start_index = options.base;
+   // let start_index = hardware_reset ? options.base : 15;
 
     // replace WASD pattern with numbers
     pattern = pattern.replaceAll('w', '8');
@@ -308,34 +308,33 @@ function search_last_party(pattern) {
     pattern = pattern.replaceAll('j', '4');
     pattern = pattern.replaceAll('k', '2');
     pattern = pattern.replaceAll('l', '6');
-    console.log(pattern);
 
     // Look for a data table matching the submitted pattern
     let data = table.filter(x => x.movements == pattern);
 
     // If we find a match for the pattern
     if (data.length > 0) {
+        /*
         data.forEach(row => {
             row.diff = row.index - start_index;
         });
+        */
 
         // Remove any null sets from the result array
         // https://stackoverflow.com/questions/281264/remove-empty-elements-from-an-array-in-javascript
         data.filter(n => n);
 
-        console.log("Match found.");
+        console.log(`Match found for ${pattern}.`);
         return data;
     } else {
-        console.warn("No match found.");
+        console.warn(`No match found for ${pattern}.`);
         return false;
     }
 
 }
 
-function init() {
-    if (options.hardware_reset) options.base = 15
-
-    let start_index = options.base;
+function init(hardware_reset = false) {
+    let start_index = hardware_reset ? 15 : options.base;
     let orderArr = range(0, options.width / 2);
 
     let order = orderArr.map(offset => (
@@ -370,7 +369,7 @@ function init() {
     // Build Tables
     table = make_last_party_table(min, max);
 
-    console.log("Initialization Complete.");
+    console.log(`Initialization Complete. Hardware Reset: ${hardware_reset}`);
 }
 
 // initial table build on page load to save resources.
@@ -382,14 +381,19 @@ let hardreset = document.getElementById('reset');
 
 // Listen for reset checkbox changes
 hardreset.addEventListener('change', (event) => {
+    let hardware_reset = false;
     if (event.currentTarget.checked) {
-        options.hardware_reset = true;
+        hardware_reset = true;
     } else {
-        options.hardware_reset = false;
+        hardware_reset = false;
     }
 
     // rebuild RNG tables
-    init();
+    init(hardware_reset);
+    ClearResults();
+    if (textbox.value.length == 12) {
+        DoCalc();
+    }
 })
 
 // Listen for text box changes to determine when to calculate.
@@ -397,48 +401,52 @@ textbox.addEventListener('input', function (e) {
     // We expect exactly 12 inputs.
     // Don't waste processing power otherwise.
     if (textbox.value.length == 12) {
-        let pattern = textbox.value;
-        let last_party = search_last_party(pattern);
-        ShowResults(last_party);
-        console.log(last_party);
+        DoCalc();
     }
 });
 
-function ShowResults(results) {
-    let resultDiv = document.getElementById('results');
-    resultDiv.innerHTML = "";
-    console.log(results);
-
-    results.forEach(result => {
-        let parent = document.createElement("div");
-        parent.classList.add("d-flex");
-        parent.classList.add("flex-row");
-        parent.classList.add("mb-3");
-
-        let diff = document.createElement("div");
-        diff.classList.add('p-2');
-        diff.innerHTML = `Diff<br />+${result.diff}`;
-        parent.appendChild(diff);
-
-        let idx = document.createElement("div");
-        idx.classList.add('p-2');
-        idx.innerHTML = `Idx<br />${result.index}`;
-        parent.appendChild(idx);
-
-        result.target_offset_tbl.forEach(offset => {
-            let card = document.createElement("div");
-            card.classList.add('p-2');
-            card.innerHTML = `${offset[0].join(",")}<br />+${offset[1]}`;
-            parent.appendChild(card);
-        })
-        resultDiv.appendChild(parent);
-    })
+function DoCalc() {
+    let pattern = textbox.value;
+    let last_party = search_last_party(pattern);
+    ShowResults(last_party);
 }
 
+function ShowResults(results) {
+    let resultDiv = document.getElementById('results');
+    ClearResults();
+
+    if (!results) {
+        let warn = document.createElement("span");
+        warn.classList.add('badge', 'bg-danger');
+        warn.innerHTML = "No Match Found!";
+        resultDiv.appendChild(warn);
+    } else {
+        results.forEach(result => {
+            let parent = document.createElement("div");
+            parent.classList.add("d-flex", "flex-row", "mb-3");
 /*
-							<div class="d-flex flex-row bd-highlight mb-3">
-								<div class="p-2 bd-highlight">Flex item 1</div>
-								<div class="p-2 bd-highlight">Flex item 2</div>
-								<div class="p-2 bd-highlight">Flex item 3</div>
-							  </div>
-                              */
+            let diff = document.createElement("div");
+            diff.classList.add('p-2');
+            diff.innerHTML = `Diff<br />+${result.diff}`;
+            parent.appendChild(diff);
+*/
+            let idx = document.createElement("div");
+            idx.classList.add('p-2');
+            idx.innerHTML = `Idx<br />${result.index}`;
+            parent.appendChild(idx);
+
+            result.target_offset_tbl.forEach(offset => {
+                let card = document.createElement("div");
+                card.classList.add('p-2');
+                card.innerHTML = `${offset[0].join(",")}<br />+${offset[1]}`;
+                parent.appendChild(card);
+            })
+            resultDiv.appendChild(parent);
+        })
+    }
+}
+
+function ClearResults() {
+    let resultDiv = document.getElementById('results');
+    resultDiv.innerHTML = "";
+}
