@@ -33,8 +33,10 @@
 			<div class="col mt-5 align-self-center">
 				<div class="row g-3 justify-content-center">
 					<div class="col-sm-12 col-lg-6">
+						<span class="badge rounded-pill bg-warning">BETA</span><br />
 						<label for="firstName" class="form-label">Inputs (WASD/8462/IJKL)</label>
 						<input type="text" class="form-control" id="tilts" placeholder="" value="" maxlength="12" required>
+						<div class="text-muted small">Searching for Irvine/Squall/Zell, Irvine/Squall/Selphie, Irvine/Squall/Rinoa.<br />More options/features coming soon.</div>
 					</div>
 				</div>
 				<div class="row g-3 justify-content-center">
@@ -50,7 +52,6 @@
 							<input id="reset" name="paymentMethod" type="checkbox" class="form-check-input">
 							<label class="form-check-label" for="reset">Hard reset at castle?</label>
 						</div>
-						  <span class="badge bg-warning">BETA.</span>
 						  <div id="results">
 						  </div>
 						  <h1 class="display-6 mt-4">How to do the thing</h1>
@@ -59,14 +60,18 @@
 							  <strong>Ensure that you're not entering any inputs and that turbo is off.</strong>
 							  <ol>
 								  <li>As the party is falling, record Squall's first 12 movements.</li>
-								  <li>After the 12 movements, hold a direction on your controller for the duration of the cinematic.</li>
-								  <li>When the screen goes white / you appear in the Commencement Room with the save point, you can let go.</li>
+								  <li>On the 12th movement, hold a direction on your controller for the duration of the cinematic.
+									  <ol type="a">
+										  <li><span class="badge rounded-pill bg-secondary">ADVANCED</span> If you see Squall, progress RNG by letting go for n number of movements.</li>
+									  </ol>
+								  </li>
+								  <li>When the party's feet touch the ground at the end of the FMV, you can let go.</li>
 								  <li>At the final draw point of the castle, interact with it the number of times indicated by your result.</li>
 								  <li>Run to the final battle without stopping, and mash confirm at the door.</li>
 							  </ol>
 
 						  </span>
-						  <div class="text-muted small mt-4">Created with ❤️ by <a href="https://twitch.tv/brofar">Brofar</a> based on the works of <a href="http://pingval.g1.xrea.com/">Pingval</a> and <a href="https://twitch.tv/awesomewaves">awesomeWaves</a> & special thanks to <a href="https://twitch.tv/akimokumi">Akimokumi</a> for help with Ruby and <a href="https://twitch.tv/thomas_8989">Thomas_8989</a> for testing.</span>
+						  <div class="text-muted small mt-4">Created with ❤️ by <a href="https://twitch.tv/brofar">Brofar</a> based on the works of <a href="http://pingval.g1.xrea.com/">Pingval</a> and <a href="https://twitch.tv/awesomewaves">awesomeWaves</a>. Special thanks to <a href="https://twitch.tv/akimokumi">Akimokumi</a> for help with Ruby and <a href="https://twitch.tv/thomas_8989">Thomas_8989</a> for testing.</span>
 					</div>
 				</div>
 			</div>

@@ -438,7 +438,7 @@ function ShowResults(results) {
             result.target_offset_tbl.forEach(offset => {
                 let card = document.createElement("div");
                 card.classList.add('p-2');
-                card.innerHTML = `${offset[0].join(",")}<br />+${offset[1]}`;
+                card.innerHTML = `${offset[0].join("/")}<br />+${offset[1]}`;
                 parent.appendChild(card);
             })
             resultDiv.appendChild(parent);
