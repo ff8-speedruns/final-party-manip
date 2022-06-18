@@ -428,21 +428,21 @@ function ShowResults(results) {
     } else {
         results.forEach(result => {
             let parent = document.createElement("div");
-            parent.classList.add("d-flex", "flex-row", "mb-3");
+            parent.classList.add("d-flex", "flex-row", "justify-content-center", "mb-3");
             /*
                         let diff = document.createElement("div");
-                        diff.classList.add('p-2');
+                        diff.classList.add('p-2', 'text-center');
                         diff.innerHTML = `Diff<br />+${result.diff}`;
                         parent.appendChild(diff);
             */
             let idx = document.createElement("div");
-            idx.classList.add('p-2');
+            idx.classList.add('p-2', 'text-center');
             idx.innerHTML = `Idx<br />${result.index}`;
             parent.appendChild(idx);
 
             result.target_offset_tbl.forEach(tbl => {
                 let card = document.createElement("div");
-                card.classList.add('p-2');
+                card.classList.add('p-2', 'text-center');
                 card.innerHTML = `${tbl.party.join("/")}<br />+${tbl.offset}`;
                 parent.appendChild(card);
             })
