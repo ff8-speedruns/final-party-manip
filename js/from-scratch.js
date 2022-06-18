@@ -301,6 +301,8 @@ let table;
 function search_last_party(pattern) {
     // let start_index = hardware_reset ? options.base : 15;
 
+    pattern = pattern.toLowerCase();
+
     // replace WASD pattern with numbers
     pattern = pattern.replaceAll('w', '8');
     pattern = pattern.replaceAll('a', '4');
