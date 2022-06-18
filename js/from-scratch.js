@@ -59,7 +59,6 @@ Number.prototype.between = function (a, b) {
 };
 
 // Goal party
-//options.targets = ['squall', 'selphie', 'irvine'];
 let rem = options.last_map_duration % 0.5;
 
 // Time to extend on the final map
@@ -244,14 +243,17 @@ function make_last_party_table(from, to) {
 
             // Offset to the target party
             target_offset_tbl: options.targets.map(target_party => (
-                [target_party, target_offset_tbl_arr[idx][target_party]]
+                {
+                    party: target_party,
+                    offset: target_offset_tbl_arr[idx][target_party]
+                }
             ))
         };
 
         // Nearest target
-        // https://stackoverflow.com/questions/23933246/find-minimum-in-array-of-arrays-js
-        let numbs = r.target_offset_tbl.map(x => { return x[1] || 0 });
-        r.nearest_target = r.target_offset_tbl[numbs.indexOf(Math.min.apply(Math, numbs))][0].join(",");
+        // https://stackoverflow.com/questions/53097817/javascript-objects-array-filter-by-minimum-value-of-an-attribute
+        let min = Math.min(...(r.target_offset_tbl).map(item => item.offset))
+        r.nearest_target = (r.target_offset_tbl).find(item => item.offset === min).party.join("/");
 
         return r;
     });
@@ -297,7 +299,7 @@ function GenerateOffsetTable(party_arr) {
 let table;
 
 function search_last_party(pattern) {
-   // let start_index = hardware_reset ? options.base : 15;
+    // let start_index = hardware_reset ? options.base : 15;
 
     // replace WASD pattern with numbers
     pattern = pattern.replaceAll('w', '8');
@@ -325,6 +327,7 @@ function search_last_party(pattern) {
         data.filter(n => n);
 
         console.log(`Match found for ${pattern}.`);
+        console.log(data);
         return data;
     } else {
         console.warn(`No match found for ${pattern}.`);
@@ -424,21 +427,21 @@ function ShowResults(results) {
         results.forEach(result => {
             let parent = document.createElement("div");
             parent.classList.add("d-flex", "flex-row", "mb-3");
-/*
-            let diff = document.createElement("div");
-            diff.classList.add('p-2');
-            diff.innerHTML = `Diff<br />+${result.diff}`;
-            parent.appendChild(diff);
-*/
+            /*
+                        let diff = document.createElement("div");
+                        diff.classList.add('p-2');
+                        diff.innerHTML = `Diff<br />+${result.diff}`;
+                        parent.appendChild(diff);
+            */
             let idx = document.createElement("div");
             idx.classList.add('p-2');
             idx.innerHTML = `Idx<br />${result.index}`;
             parent.appendChild(idx);
 
-            result.target_offset_tbl.forEach(offset => {
+            result.target_offset_tbl.forEach(tbl => {
                 let card = document.createElement("div");
                 card.classList.add('p-2');
-                card.innerHTML = `${offset[0].join("/")}<br />+${offset[1]}`;
+                card.innerHTML = `${tbl.party.join("/")}<br />+${tbl.offset}`;
                 parent.appendChild(card);
             })
             resultDiv.appendChild(parent);
