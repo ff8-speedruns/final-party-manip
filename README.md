@@ -13,3 +13,4 @@ Enter numbers, do things.  (Actual documentation TODO)
 This tool was made possible by the following people's dedicated research & code:
 * [PingVal](http://pingval.g1.xrea.com/)
 * [awesomeWaves](https://twitch.tv/awesomeWaves)
+* [D Pad Codepen](https://codepen.io/tswone/pen/GLzZLd)

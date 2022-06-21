@@ -14,6 +14,7 @@
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet"
 		integrity="sha384-KyZXEAg3QhqLMpG8r+8fhAXLRk2vvoC2f3B09zVXn8CA5QIVfZOJ3BCsw2P0p/We" crossorigin="anonymous">
 	<link href="./css/styles.css" rel="stylesheet">
+	<link href="./css/dpad.css" rel="stylesheet">
 
 </head>
 
@@ -54,6 +55,14 @@
 						<input id="reset" type="checkbox" class="form-check-input">
 						<label class="form-check-label" for="reset">Hard reset at castle?</label>
 					</div>
+					<div class="set d-md-none">
+						<nav class="d-pad">
+						  <a id="up" class="dpad up" href="#"></a>
+						  <a id="right" class="dpad right" href="#"></a>
+						  <a id="down" class="dpad down" href="#"></a>
+						  <a id="left" class="dpad left" href="#"></a>  
+						</nav>
+					  </div>
 					<div id="results">
 					</div>
 					<div class="accordion mt-4" id="accordionFlushExample">
@@ -112,6 +121,7 @@
 		integrity="sha384-U1DAWAznBHeqEIlVSCgzq+c9gqGAJn5c/t99JyeKa9xxaYpSvHU5awsuZVVFIhvj"
 		crossorigin="anonymous"></script>
 	<script src="./js/from-scratch.js"></script>
+	<script src="./js/dpad.js"></script>
 </body>
 
 </html>
