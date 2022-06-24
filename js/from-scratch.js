@@ -18,7 +18,7 @@ function ArrayCompare(a, b) {
 }
 
 // Recreating the whole script from scratch using the Ruby script for logic reference.
-const Initial_State = 0x00000001;
+const Initial_State = 0x00000001; // unused?
 
 let options = {
     // Target party. Multiple settings are possible.
@@ -57,17 +57,6 @@ Number.prototype.between = function (a, b) {
         max = Math.max.apply(Math, [a, b]);
     return this >= min && this <= max;
 };
-
-// Goal party
-let rem = options.last_map_duration % 0.5;
-
-// Time to extend on the final map
-let minSafe = Math.min(...options.last_map_safe_range);
-let maxSafe = Math.max(...options.last_map_safe_range)
-options["last_map_extra"] = rem.between(minSafe, maxSafe) ? 0 : rem < minSafe ? 0.25 - rem : 0.75 - rem;
-
-// Offset from the last random number to the random number applied to the final party selection
-options["party_rnd_offset"] = Math.floor((options.last_map_duration + options.last_map_extra) / 0.5) + 1
 
 class RNG {
     Initial_State = 0x00000001;
@@ -159,226 +148,265 @@ class Party {
     };
 }
 
-// Final party selection
-// Numbers are references to specific party members
-function last_party(rnd) {
-    let tbl = [
-        [0, 1, 2],
-        [0, 1, 4],
-        [0, 1, 5],
-        [0, 1, 3],
-        [0, 2, 4],
-        [0, 2, 5],
-        [0, 2, 3],
-        [0, 4, 5],
-        [0, 4, 3],
-        [0, 5, 3],
-        [1, 2, 4],
-        [1, 2, 5],
-        [1, 2, 3],
-        [1, 4, 5],
-        [1, 4, 3],
-        [1, 5, 3],
-        [2, 4, 5],
-        [2, 4, 3],
-        [2, 5, 3],
-        [4, 5, 3]
-    ];
+class FinalPartyManip {
 
-    let idx = Math.floor(rnd / 13);
-    return new Party(tbl[idx]);
-}
+    constructor(options) {
+        // Target party. Multiple settings are possible.
+        this.targets = options.targets;
 
-function make_last_party_table(from, to) {
-    let rng = new RNG();
+        // Index used as a search reference
+        this.base = options.base || 2800;
 
-    // Take a good margin
-    let margin = 250;
+        // Search for this width with base as the center
+        this.width = options.width || 2000;
 
-    // Subtract 1. I don't know why. Don't ask.
-    let size = to + margin;
+        // reverse, ascending, descending, other
+        this.order = options.order || "reverse";
 
-    // Random number state
-    // Get the first n RNG states, where n is our search window size.
-    let rng_state_arr = range(0, size);  //0 - (1015+250)
-    rng_state_arr = rng_state_arr.map(x => rng.NextRng());
+        // Perform a hard reset immediately before (DISC4 start data)
+        this.hardware_reset = options.hardware_reset || false;
 
-    // Random numbers actually used (0..255)
-    let source_rng = new RNG();
-    let source_arr = range(0, size);  //0 - (1015+250)
-    source_arr = source_arr.map(x => source_rng.next_1b());
+        // Idling duration when traveling the final map at the fastest speed
+        // ps2fast_ja:22.0, ps2fast_na:22.7?, pc-fr-2013:21.5,
+        this.last_map_duration = options.last_map_duration || 21.5;
 
-    // Direction of movement of squall during time compression
-    let direction_arr = source_arr.map(v => ["8", "2", "4", "6"][v & 3]);
+        // If last_map_duration% 0.5 is within this range, do not wait on the last map
+        this.last_map_safe_range = options.last_map_safe_range || [0.10, 0.20, 0.30, 0.40];
 
-    // Party when you go the fastest on the final map
-    let lastPartySize = size - options.party_rnd_offset;
-    let party_arr = Array.from({ length: lastPartySize }, (val, idx) => last_party(source_arr[idx + options.party_rnd_offset]))
+        // Squall movement upper limit
+        this.movements_size = options.movements_size || 12;
 
-    // Array of offset tables to the nearest target
-    let target_offset_tbl_arr = GenerateOffsetTable(party_arr);
+        // Goal party
+        let rem = options.last_map_duration % 0.5;
 
-    // old: range(0, to).map((idx) ...
-    let table = range(from, to).map((idx) => {
-        if (!idx.between(from, to)) return null;
+        // Time to extend on the final map
+        let minSafe = Math.min(...options.last_map_safe_range);
+        let maxSafe = Math.max(...options.last_map_safe_range)
+        let last_map_extra = rem.between(minSafe, maxSafe) ? 0 : rem < minSafe ? 0.25 - rem : 0.75 - rem;
 
-        let r = {
-            index: idx,
+        // Offset from the last random number to the random number applied to the final party selection
+        this.party_rnd_offset = Math.floor((this.last_map_duration + last_map_extra) / 0.5) + 1
 
-            // source
-            source: source_arr[idx],
+        // Start!
+        this.init();
+    }
 
-            // Random number state - convert to hex value
-            rng_state: rng_state_arr[idx].toString(16),
+    init() {
+        let start_index = this.hardware_reset ? 15 : this.base;
+        let orderArr = range(0, this.width / 2);
 
-            // !party
-            party: party_arr[idx],
+        let order = orderArr.map(offset => (
+            [start_index + offset, start_index - offset]
+        )).flat().filter(idx => idx >= 0);
 
-            // movements
-            movements: ((arr) => {
-                let first = Math.max(0, idx - (options.movements_size - 1));
-                let last = idx + 1;
-                return arr.slice(first, last).join("");
-            })(direction_arr),
+        // Unique values only, please.
+        order = [...new Set(order)];
 
-            // Offset to the target party
-            target_offset_tbl: options.targets.map(target_party => (
-                {
-                    party: target_party,
-                    offset: target_offset_tbl_arr[idx][target_party]
-                }
-            ))
-        };
-
-        // Nearest target
-        // https://stackoverflow.com/questions/53097817/javascript-objects-array-filter-by-minimum-value-of-an-attribute
-        let min = Math.min(...(r.target_offset_tbl).map(item => item.offset))
-        r.nearest_target = (r.target_offset_tbl).find(item => item.offset === min).party.join("/");
-
-        return r;
-    });
-
-    return table;
-}
-
-function GenerateOffsetTable(party_arr) {
-    let targets = options.targets;
-
-    //party_arr is an array of arrays
-    let r = [];
-    party_arr.reverse();
-
-    party_arr.forEach((curr_party, i) => {
-
-        // Instantiate object
-        r[i] = {};
-
-        if (i > 0) {
-            // Increment the number for each party from the last index
-            let lastValue = r[i - 1];
-
-            Object.keys(lastValue).map(function (key, index) {
-                r[i][key] = lastValue[key] + 1;
-            });
+        // If our width is an even number, let's remove the top index.
+        if (isEven(this.width)) {
+            const max = Math.max(...order);
+            order = order.filter(number => number !== max)
         }
 
-        // If this party combination has all of our target members, reset its counter to 0        
-        targets.forEach(elem => {
-            let goodParty = ArrayCompare(curr_party, elem);
-            if (goodParty)
-                r[i][curr_party] = 0;
-        });
-    });
+        let min = Math.min(...order);
+        let max = Math.max(...order);
 
-    r.reverse();
-    return r;
-}
+        switch (this.order) {
+            case "reverse":
+                order.reverse();
+                break;
 
-// *********************************************** //
+            case "ascending":
+                order.sort();
+                break;
 
-let table;
+            case "descending":
+                order.sort().reverse();
+        };
 
-function search_last_party(pattern) {
-    // let start_index = hardware_reset ? options.base : 15;
+        // Build Tables
+        this.table = this.make_last_party_table(min, max);
 
-    pattern = pattern.toLowerCase();
-
-    // replace WASD pattern with numbers
-    pattern = pattern.replaceAll('w', '8');
-    pattern = pattern.replaceAll('a', '4');
-    pattern = pattern.replaceAll('s', '2');
-    pattern = pattern.replaceAll('d', '6');
-    pattern = pattern.replaceAll('i', '8');
-    pattern = pattern.replaceAll('j', '4');
-    pattern = pattern.replaceAll('k', '2');
-    pattern = pattern.replaceAll('l', '6');
-
-    // Look for a data table matching the submitted pattern
-    let data = table.filter(x => x.movements == pattern);
-
-    // If we find a match for the pattern
-    if (data.length > 0) {
-        /*
-        data.forEach(row => {
-            row.diff = row.index - start_index;
-        });
-        */
-
-        // Remove any null sets from the result array
-        // https://stackoverflow.com/questions/281264/remove-empty-elements-from-an-array-in-javascript
-        data.filter(n => n);
-
-        console.log(`Match found for ${pattern}.`);
-        console.log(data);
-        return data;
-    } else {
-        console.warn(`No match found for ${pattern}.`);
-        return false;
+        console.log(`Initialization Complete. Hardware Reset: ${this.hardware_reset}`);
     }
 
-}
+    make_last_party_table(from, to) {
+        let rng = new RNG();
 
-function init(hardware_reset = false) {
-    let start_index = hardware_reset ? 15 : options.base;
-    let orderArr = range(0, options.width / 2);
+        // Take a good margin
+        let margin = 250;
 
-    let order = orderArr.map(offset => (
-        [start_index + offset, start_index - offset]
-    )).flat().filter(idx => idx >= 0);
+        // Subtract 1. I don't know why. Don't ask.
+        let size = to + margin;
 
-    // Unique values only, please.
-    order = [...new Set(order)];
+        // Random number state
+        // Get the first n RNG states, where n is our search window size.
+        let rng_state_arr = range(0, size);  //0 - (1015+250)
+        rng_state_arr = rng_state_arr.map(x => rng.NextRng());
 
-    // If our width is an even number, let's remove the top index.
-    if (isEven(options.width)) {
-        const max = Math.max(...order);
-        order = order.filter(number => number !== max)
+        // Random numbers actually used (0..255)
+        let source_rng = new RNG();
+        let source_arr = range(0, size);  //0 - (1015+250)
+        source_arr = source_arr.map(x => source_rng.next_1b());
+
+        // Direction of movement of squall during time compression
+        let direction_arr = source_arr.map(v => ["8", "2", "4", "6"][v & 3]);
+
+        // Party when you go the fastest on the final map
+        let lastPartySize = size - this.party_rnd_offset;
+        let party_arr = Array.from({ length: lastPartySize }, (val, idx) => this.last_party(source_arr[idx + this.party_rnd_offset]))
+
+        // Array of offset tables to the nearest target
+        let target_offset_tbl_arr = this.GenerateOffsetTable(party_arr);
+
+        // old: range(0, to).map((idx) ...
+        let table = range(from, to).map((idx) => {
+            if (!idx.between(from, to)) return null;
+
+            let r = {
+                index: idx,
+
+                // source
+                source: source_arr[idx],
+
+                // Random number state - convert to hex value
+                rng_state: rng_state_arr[idx].toString(16),
+
+                // !party
+                party: party_arr[idx],
+
+                // movements
+                movements: ((arr) => {
+                    let first = Math.max(0, idx - (this.movements_size - 1));
+                    let last = idx + 1;
+                    return arr.slice(first, last).join("");
+                })(direction_arr),
+
+                // Offset to the target party
+                target_offset_tbl: this.targets.map(target_party => (
+                    {
+                        party: target_party,
+                        offset: target_offset_tbl_arr[idx][target_party]
+                    }
+                ))
+            };
+
+            // Nearest target
+            // https://stackoverflow.com/questions/53097817/javascript-objects-array-filter-by-minimum-value-of-an-attribute
+            let min = Math.min(...(r.target_offset_tbl).map(item => item.offset))
+            r.nearest_target = (r.target_offset_tbl).find(item => item.offset === min).party.join("/");
+
+            return r;
+        });
+
+        return table;
     }
 
-    let min = Math.min(...order);
-    let max = Math.max(...order);
+    GenerateOffsetTable(party_arr) {
+        let targets = this.targets;
 
-    switch (options.order) {
-        case "reverse":
-            order.reverse();
-            break;
+        //party_arr is an array of arrays
+        let r = [];
+        party_arr.reverse();
 
-        case "ascending":
-            order.sort();
-            break;
+        party_arr.forEach((curr_party, i) => {
 
-        case "descending":
-            order.sort().reverse();
-    };
+            // Instantiate object
+            r[i] = {};
 
-    // Build Tables
-    table = make_last_party_table(min, max);
+            if (i > 0) {
+                // Increment the number for each party from the last index
+                let lastValue = r[i - 1];
 
-    console.log(`Initialization Complete. Hardware Reset: ${hardware_reset}`);
+                Object.keys(lastValue).map(function (key, index) {
+                    r[i][key] = lastValue[key] + 1;
+                });
+            }
+
+            // If this party combination has all of our target members, reset its counter to 0        
+            targets.forEach(elem => {
+                let goodParty = ArrayCompare(curr_party, elem);
+                if (goodParty)
+                    r[i][curr_party] = 0;
+            });
+        });
+
+        r.reverse();
+        return r;
+    }
+
+    search_last_party(pattern) {
+        // let start_index = hardware_reset ? options.base : 15;
+
+        pattern = pattern.toLowerCase();
+
+        // replace WASD pattern with numbers
+        pattern = pattern.replaceAll('w', '8');
+        pattern = pattern.replaceAll('a', '4');
+        pattern = pattern.replaceAll('s', '2');
+        pattern = pattern.replaceAll('d', '6');
+        pattern = pattern.replaceAll('i', '8');
+        pattern = pattern.replaceAll('j', '4');
+        pattern = pattern.replaceAll('k', '2');
+        pattern = pattern.replaceAll('l', '6');
+
+        // Look for a data table matching the submitted pattern
+        let data = this.table.filter(x => x.movements == pattern);
+
+        // If we find a match for the pattern
+        if (data.length > 0) {
+            /*
+            data.forEach(row => {
+                row.diff = row.index - start_index;
+            });
+            */
+
+            // Remove any null sets from the result array
+            // https://stackoverflow.com/questions/281264/remove-empty-elements-from-an-array-in-javascript
+            data.filter(n => n);
+
+            console.log(`Match found for ${pattern}.`);
+            console.log(data);
+            return data;
+        } else {
+            console.warn(`No match found for ${pattern}.`);
+            return false;
+        }
+    }
+    // Final party selection
+    // Numbers are references to specific party members
+    last_party(rnd) {
+        let tbl = [
+            [0, 1, 2],
+            [0, 1, 4],
+            [0, 1, 5],
+            [0, 1, 3],
+            [0, 2, 4],
+            [0, 2, 5],
+            [0, 2, 3],
+            [0, 4, 5],
+            [0, 4, 3],
+            [0, 5, 3],
+            [1, 2, 4],
+            [1, 2, 5],
+            [1, 2, 3],
+            [1, 4, 5],
+            [1, 4, 3],
+            [1, 5, 3],
+            [2, 4, 5],
+            [2, 4, 3],
+            [2, 5, 3],
+            [4, 5, 3]
+        ];
+
+        let idx = Math.floor(rnd / 13);
+        return new Party(tbl[idx]);
+    }
 }
+
 
 // initial table build on page load to save resources.
-init();
+let manip = new FinalPartyManip(options);
 
 let textbox = document.getElementById('tilts');
 let hardreset = document.getElementById('reset');
@@ -394,7 +422,8 @@ hardreset.addEventListener('change', (event) => {
     }
 
     // rebuild RNG tables
-    init(hardware_reset);
+    options.hardware_reset = hardware_reset;
+    manip = new FinalPartyManip(options);
     ClearResults();
     if (textbox.value.length == 12) {
         DoCalc();
@@ -412,7 +441,7 @@ textbox.addEventListener('input', function (e) {
 
 function DoCalc() {
     let pattern = textbox.value;
-    let last_party = search_last_party(pattern);
+    let last_party = manip.search_last_party(pattern);
     ShowResults(last_party);
 }
 
