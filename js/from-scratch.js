@@ -404,45 +404,64 @@ class FinalPartyManip {
     }
 }
 
+/******************************************************/
 
 // initial table build on page load to save resources.
 let manip = new FinalPartyManip(options);
-
 let textbox = document.getElementById('tilts');
 let hardreset = document.getElementById('reset');
 //let pattern = "848264444444";
 
 // Listen for reset checkbox changes
 hardreset.addEventListener('change', (event) => {
-    let hardware_reset = false;
-    if (event.currentTarget.checked) {
-        hardware_reset = true;
-    } else {
-        hardware_reset = false;
-    }
+    let hardware_reset = event.currentTarget.checked;
 
     // rebuild RNG tables
     options.hardware_reset = hardware_reset;
     manip = new FinalPartyManip(options);
     ClearResults();
-    if (textbox.value.length == 12) {
-        DoCalc();
-    }
+    DoCalc();
 })
 
 // Listen for text box changes to determine when to calculate.
-textbox.addEventListener('input', function (e) {
-    // We expect exactly 12 inputs.
-    // Don't waste processing power otherwise.
-    if (textbox.value.length == 12) {
-        DoCalc();
+textbox.addEventListener('input', DoCalc);
+
+// When a different game version is selected
+function version() {
+    let version = document.querySelector('input[name="gameVersion"]:checked').id;
+    switch (version) {
+        case "PSNA":
+            options.last_map_duration = 22.7;
+            options.base = 2800;
+            break;
+        case "PSJA":
+            options.last_map_duration = 22;
+            options.base = 2800;
+            break;
+        case "LITE":
+            options.last_map_duration = 21.5;
+            options.base = 1800;
+            break;
+        case "FR":
+        default:
+            options.last_map_duration = 21.5;
+            options.base = 2800;
     }
-});
+    manip = new FinalPartyManip(options);
+    ClearResults();
+    DoCalc();
+}
 
 function DoCalc() {
-    let pattern = textbox.value;
-    let last_party = manip.search_last_party(pattern);
-    ShowResults(last_party);
+    // We expect exactly 12 inputs.
+    // Don't waste processing power otherwise.
+    if (textbox.value.length == options.movements_size) {
+        let pattern = textbox.value;
+        let last_party = manip.search_last_party(pattern);
+        ShowResults(last_party);
+    } else {
+        ClearResults();
+    }
 }
 
 function ShowResults(results) {

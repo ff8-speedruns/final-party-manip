@@ -20,3 +20,6 @@ body > .container {
   padding-right: 15px;
   padding-left: 15px;
 }
+label {
+  margin-right: 10px;
+}
