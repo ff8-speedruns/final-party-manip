@@ -26,6 +26,12 @@ let options = {
         ["irvine", "squall", "zell"],
         ["irvine", "squall", "selphie"],
         ["irvine", "squall", "rinoa"],
+        ["irvine", "zell", "quistis"],
+        ["irvine", "zell", "selphie"],
+        ["irvine", "zell", "rinoa"],
+        ["irvine", "selphie", "rinoa"],
+        ["irvine", "selphie", "quistis"],
+        ["irvine", "quistis", "rinoa"],
     ],
 
     // Index used as a search reference
@@ -474,27 +480,49 @@ function ShowResults(results) {
         warn.innerHTML = "No Match Found!";
         resultDiv.appendChild(warn);
     } else {
+        // Output results
         results.forEach(result => {
-            let parent = document.createElement("div");
-            parent.classList.add("d-flex", "flex-row", "justify-content-center", "mb-3");
+            let table = document.createElement("table");
+            table.classList.add("table", "mb-3", "w-50");
+
+            let parent = document.createElement("tbody");
             /*
                         let diff = document.createElement("div");
                         diff.classList.add('p-2', 'text-center');
                         diff.innerHTML = `Diff<br />+${result.diff}`;
                         parent.appendChild(diff);
             */
-            let idx = document.createElement("div");
-            idx.classList.add('p-2', 'text-center');
-            idx.innerHTML = `Idx<br />${result.index}`;
-            parent.appendChild(idx);
+            let row = document.createElement("tr");
+            let c1 = document.createElement("th");
+            let c2 = document.createElement("th");
+            c1.classList.add("text-end");
+            c1.innerHTML = 'Idx';
+            c2.innerHTML = result.index;
+            row.appendChild(c1);
+            row.appendChild(c2);
+            parent.appendChild(row);
+
+            // Sort by number of draws
+            result.target_offset_tbl.sort((a, b) => a.offset - b.offset); // b - a for reverse sort
 
             result.target_offset_tbl.forEach(tbl => {
-                let card = document.createElement("div");
-                card.classList.add('p-2', 'text-center');
-                card.innerHTML = `${tbl.party.join("/")}<br />+${tbl.offset}`;
-                parent.appendChild(card);
+                let row = document.createElement("tr");
+                let c1 = document.createElement("td");
+                let c2 = document.createElement("td");
+                
+                c1.classList.add("text-end");
+
+                c1.innerHTML = tbl.party.join("/");
+                c2.innerHTML = `<span class="badge rounded-pill bg-success">+${tbl.offset}</span>`;
+
+                row.appendChild(c1);
+                row.appendChild(c2);
+                parent.appendChild(row);
+
+                parent.appendChild(row);
             })
-            resultDiv.appendChild(parent);
+            table.appendChild(parent);
+            resultDiv.appendChild(table);
         })
     }
 }
