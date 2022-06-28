@@ -506,6 +506,8 @@ function ShowResults(results) {
             result.target_offset_tbl.sort((a, b) => a.offset - b.offset); // b - a for reverse sort
 
             result.target_offset_tbl.forEach(tbl => {
+                // Don't bother with draws > 20.
+                if(tbl.offset > 20) return;
                 let row = document.createElement("tr");
                 let c1 = document.createElement("td");
                 let c2 = document.createElement("td");
