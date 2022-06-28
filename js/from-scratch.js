@@ -35,10 +35,12 @@ let options = {
     ],
 
     // Index used as a search reference
-    base: 2800,
+    //2800
+    base: 12,
 
     // Search for this width with base as the center
-    width: 2000,
+    //2000
+    width: 6000,
 
     // reverse, ascending, descending, other
     order: "reverse",
@@ -232,8 +234,8 @@ class FinalPartyManip {
 
         // Build Tables
         this.table = this.make_last_party_table(min, max);
-
-        console.log(`Initialization Complete. Hardware Reset: ${this.hardware_reset}`);
+        let version = document.querySelector('input[name="gameVersion"]:checked').id;
+        console.log(`Initialization Complete: ${version}.`);
     }
 
     make_last_party_table(from, to) {
@@ -418,17 +420,6 @@ let textbox = document.getElementById('tilts');
 let hardreset = document.getElementById('reset');
 //let pattern = "848264444444";
 
-// Listen for reset checkbox changes
-hardreset.addEventListener('change', (event) => {
-    let hardware_reset = event.currentTarget.checked;
-
-    // rebuild RNG tables
-    options.hardware_reset = hardware_reset;
-    manip = new FinalPartyManip(options);
-    ClearResults();
-    DoCalc();
-})
-
 // Listen for text box changes to determine when to calculate.
 textbox.addEventListener('input', DoCalc);
 
@@ -438,20 +429,16 @@ function version() {
     switch (version) {
         case "PSNA":
             options.last_map_duration = 22.7;
-            options.base = 2800;
+            //options.base = 2800;
             break;
         case "PSJA":
             options.last_map_duration = 22;
-            options.base = 2800;
+            //options.base = 2800;
             break;
-        case "LITE":
-            options.last_map_duration = 21.5;
-            options.base = 1800;
-            break;
-        case "FR":
+        case "PC":
         default:
             options.last_map_duration = 21.5;
-            options.base = 2800;
+            //options.base = 2800;
     }
     manip = new FinalPartyManip(options);
     ClearResults();
