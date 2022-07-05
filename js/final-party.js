@@ -18,8 +18,6 @@ function ArrayCompare(a, b) {
 }
 
 // Recreating the whole script from scratch using the Ruby script for logic reference.
-const Initial_State = 0x00000001; // unused?
-
 let options = {
     // Target party. Multiple settings are possible.
     targets: [
@@ -67,10 +65,8 @@ Number.prototype.between = function (a, b) {
 };
 
 class RNG {
-    Initial_State = 0x00000001;
-
     constructor() {
-        this.Current_Rng = 1;// this.CreateRand(this.Initial_State);
+        this.Current_Rng = 1;
     }
 
     CreateRand(seed) {
