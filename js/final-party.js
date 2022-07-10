@@ -434,10 +434,17 @@ function version() {
         case "PC":
         default:
             options.last_map_duration = 21.5;
-            //options.base = 2800;
+        //options.base = 2800;
     }
     manip = new FinalPartyManip(options);
-    ClearResults();
+    DoCalc();
+}
+
+// When holy war is checked
+function HolyWar() {
+    let holywar = document.getElementById('holywar');
+    options.holywar = holywar.checked;
+    manip = new FinalPartyManip(options);
     DoCalc();
 }
 
@@ -488,13 +495,23 @@ function ShowResults(results) {
             // Sort by number of draws
             result.target_offset_tbl.sort((a, b) => a.offset - b.offset); // b - a for reverse sort
 
+            // If Holy War is checked, only show results with Selphie, Zell, Quistis and Irvine (fastest attackers)
+            if (options.holywar === true) {
+                let holyParty = ['selphie', 'zell', 'quistis', 'irvine'];
+                
+                result.target_offset_tbl = result.target_offset_tbl.filter(val => {
+                    return holyParty.includes(val.party[0]) && holyParty.includes(val.party[1]) && holyParty.includes(val.party[2]);
+                })
+            }
+
             result.target_offset_tbl.forEach(tbl => {
                 // Don't bother with draws > 20.
-                if(tbl.offset > 20) return;
+                if (tbl.offset > 20) return;
+
                 let row = document.createElement("tr");
                 let c1 = document.createElement("td");
                 let c2 = document.createElement("td");
-                
+
                 c1.classList.add("text-end");
 
                 c1.innerHTML = tbl.party.join("/");
