@@ -8,6 +8,7 @@ function dir(dir) {
         case "down": tilt = "s"; break;
         case "left": tilt = "a"; break;
         case "right": tilt = "d"; break;
+        case "wild": tilt = "*"; break;
     }
 
     let val = tilts.value;

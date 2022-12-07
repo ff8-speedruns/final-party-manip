@@ -345,17 +345,23 @@ class FinalPartyManip {
         pattern = pattern.toLowerCase();
 
         // replace WASD pattern with numbers
-        pattern = pattern.replaceAll('w', '8');
-        pattern = pattern.replaceAll('a', '4');
         pattern = pattern.replaceAll('s', '2');
+        pattern = pattern.replaceAll('a', '4');
         pattern = pattern.replaceAll('d', '6');
-        pattern = pattern.replaceAll('i', '8');
-        pattern = pattern.replaceAll('j', '4');
+        pattern = pattern.replaceAll('w', '8');
         pattern = pattern.replaceAll('k', '2');
+        pattern = pattern.replaceAll('j', '4');
         pattern = pattern.replaceAll('l', '6');
+        pattern = pattern.replaceAll('i', '8');
+
+        // Idea Credit: Kiitoksia
+        // Replace all non-permitted characters with wildcards.
+        let permittedCharacters = ['w', 'a', 's', 'd', 'i', 'j', 'k', 'l', '2', '4', '6', '8'];
+
+        pattern = pattern.replace(new RegExp(`[^${permittedCharacters.join('')}]`, 'g'), '5');
 
         // Look for a data table matching the submitted pattern
-        let data = this.table.filter(x => x.movements == pattern);
+        let data = this.table.filter(item => new RegExp('^' + pattern.replace(/5/g, '.*') + '$').test(item.movements));
 
         // If we find a match for the pattern
         if (data.length > 0) {
