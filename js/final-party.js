@@ -437,6 +437,10 @@ function version() {
             options.last_map_duration = 22;
             //options.base = 2800;
             break;
+        case "JPHD":
+            options.last_map_duration = 21.2;
+            //options.base = 2800;
+            break;
         case "PC":
         default:
             options.last_map_duration = 21.5;
