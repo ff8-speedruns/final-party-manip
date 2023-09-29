@@ -38,7 +38,7 @@ let options = {
 
     // Search for this width with base as the center
     //2000
-    width: 6000,
+    width: 9000,
 
     // reverse, ascending, descending, other
     order: "reverse",
