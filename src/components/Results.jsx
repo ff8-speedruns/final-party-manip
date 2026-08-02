@@ -14,6 +14,9 @@ export default function Results({ results, checkedCharacters, entered }) {
     // of pattern. Virtualizing means only the handful of cards actually on screen
     // ever exist as real DOM nodes, so cost stays flat no matter how many rows
     // match.
+    // TanStack Virtual intentionally returns fresh handler functions every
+    // render; that's documented library behavior, not a stale-closure bug.
+    // eslint-disable-next-line react-hooks/incompatible-library
     const virtualizer = useVirtualizer({
         count: results?.length ?? 0,
         getScrollElement: () => scrollRef.current,
