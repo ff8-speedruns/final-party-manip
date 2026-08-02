@@ -1,154 +1,29 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
-<head>
-
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<meta name="description" content="">
-	<meta name="author" content="">
-
-	<title>FF8 Final Party Manipulation</title>
-
-	<!-- Bootstrap core CSS -->
-	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet"
-		integrity="sha384-KyZXEAg3QhqLMpG8r+8fhAXLRk2vvoC2f3B09zVXn8CA5QIVfZOJ3BCsw2P0p/We" crossorigin="anonymous">
-	<link href="./css/styles.css" rel="stylesheet">
-	<link href="./css/dpad.css" rel="stylesheet">
-
-</head>
-
-<body>
-	<!-- Header -->
-	<header>
-		<nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
-			<div class="container">
-				<a class="navbar-brand" href="#">FF8 Final Party Manipulation</a>
-				<a href="../" class="btn btn-success">Back to Garden</a>
-			</div>
-		</nav>
-	</header>
-
-
-	<!-- Page Content -->
-	<main role="main" class="container">
-		<div class="col mt-5 align-self-center">
-			<div class="row g-3 justify-content-center">
-				<div class="col-sm-12 col-lg-6">
-					<div class="alert alert-warning d-flex align-items-center" role="alert">
-						<svg class="bi flex-shrink-0 me-2" width="24" height="24" role="img" aria-label="Warning:">
-							<use xlink:href="#exclamation-triangle-fill" />
-						</svg>
-						<div>
-							This tool is in beta. It's <em>probably</em> safe to use in runs, but you should have a
-							backup strategy ready just in case.
-						</div>
-					</div>
-					<div class="my-3">
-						<input id="PC" name="gameVersion" type="radio" class="form-check-input" onchange="version()"
-							checked>
-						<label class="form-check-label" for="PC">PC (FR)</label>
-
-						<input id="PSJA" name="gameVersion" type="radio" class="form-check-input" onchange="version()">
-						<label class="form-check-label" for="PSJA">PC (EN) / PS (JP)</label>
-
-						<input id="PSNA" name="gameVersion" type="radio" class="form-check-input" onchange="version()">
-						<label class="form-check-label" for="PSNA">PS (NA)</label>
-
-						<input id="JPHD" name="gameVersion" type="radio" class="form-check-input" onchange="version()">
-						<label class="form-check-label" for="JPHD">PC (HD JP)</label>
-					</div>
-					<label for="tilts" class="form-label">Inputs (WASD/8462/IJKL) | 5/* = wildcard</label>
-					<input type="text" class="form-control" id="tilts" placeholder="" value="" maxlength="12" required>
-					<div class="form-check form-switch">
-						<input id="holywar" name="holywar" type="checkbox" role="switch" class="form-check-input"
-							onchange="HolyWar()">
-						<label class="form-check-label" for="holywar">Holy War*</label>
-					</div>
-				</div>
-			</div>
-			<div class="row g-3 justify-content-center">
-				<div class="col-lg-6">
-					<div class="set d-md-none">
-						<nav class="d-pad">
-							<a id="wild" class="dpad wild" href="#"></a>
-							<a id="up" class="dpad up" href="#"></a>
-							<a id="right" class="dpad right" href="#"></a>
-							<a id="down" class="dpad down" href="#"></a>
-							<a id="left" class="dpad left" href="#"></a>
-						</nav>
-					</div>
-					<div id="results">
-					</div>
-					<div class="accordion mt-4" id="accordionFlushExample">
-						<div class="accordion-item">
-							<h2 class="accordion-header" id="flush-headingOne">
-								<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-									data-bs-target="#flush-collapseOne" aria-expanded="false"
-									aria-controls="flush-collapseOne">
-									How to use this tool
-								</button>
-							</h2>
-							<div id="flush-collapseOne" class="accordion-collapse collapse"
-								aria-labelledby="flush-headingOne" data-bs-parent="#accordionFlushExample">
-								<div class="accordion-body">
-									<h1 class="display-6">How to do the thing</h1>
-									<div class="small">
-										This manipulation begins when the FMV after you defeat Adel begins
-										playing.<br />
-										<strong>Ensure that you're not entering any inputs and that turbo is
-											off.</strong>
-										<ol>
-											<li>As the party is falling, record Squall's first 12 movements.</li>
-											<li>On the 12th movement, hold a direction on your controller for the
-												duration of the cinematic.
-												<ol type="a">
-													<li><span class="badge rounded-pill bg-secondary">ADVANCED</span> If
-														you see Squall, progress RNG by letting go for n number of
-														movements then resume holding a button.</li>
-												</ol>
-											</li>
-											<li>When the party's feet touch the ground at the end of the FMV, you can
-												let go.</li>
-											<li>At the final draw point of the castle, interact with it the number of
-												times indicated by your result.</li>
-											<li>Run to the final battle without stopping, and mash confirm at the door.
-											</li>
-										</ol>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-					<div class="text-muted small mt-4">* The Holy War option filters the results to only those containing Selphie,
-						Zell, Quistis, and Irvine since they're the fastest attackers.</span>
-					</div>
-					<div class="text-muted small mt-4">Created with ❤️ by <a href="https://twitch.tv/brofar">Brofar</a>
-						based on the works of <a href="http://pingval.g1.xrea.com/">Pingval</a>, <a
-						href="https://twitch.tv/kiitoksia">Kiitoksia</a>, and <a
-							href="https://twitch.tv/awesomewaves">awesomeWaves</a>. Special thanks to <a
-							href="https://twitch.tv/akimokumi">Akimokumi</a> for help with ruby, <a
-							href="https://twitch.tv/thomas_8989">Thomas_8989</a> for testing, and <a
-							href="https://twitch.tv/bodcap">Bodcap</a> for finding the HD JP last map duration.</span>
-					</div>
-				</div>
-			</div>
-	</main>
-	<!-- /.container -->
-
-	<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
-		<symbol id="exclamation-triangle-fill" fill="currentColor" viewBox="0 0 16 16">
-			<path
-				d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z" />
-		</symbol>
-	</svg>
-
-	<!-- Bootstrap core JavaScript -->
-	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js"
-		integrity="sha384-U1DAWAznBHeqEIlVSCgzq+c9gqGAJn5c/t99JyeKa9xxaYpSvHU5awsuZVVFIhvj"
-		crossorigin="anonymous"></script>
-	<script src="./js/final-party.js"></script>
-	<script src="./js/dpad.js"></script>
-</body>
-
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Work out the tilt inputs for the FF8 final party manipulation." />
+    <title>FF8 Final Party Manipulation</title>
+    <script>
+      // Resolve the saved colour scheme before first paint. Shared key, so the
+      // choice carries over from the hub. See @ff8-speedruns/ui.
+      try {
+        var s = window.localStorage.getItem('ff8-color-scheme');
+        var scheme = s === 'light' || s === 'dark' || s === 'auto' ? s : 'auto';
+        document.documentElement.setAttribute(
+          'data-mantine-color-scheme',
+          scheme !== 'auto'
+            ? scheme
+            : window.matchMedia('(prefers-color-scheme: dark)').matches
+              ? 'dark'
+              : 'light'
+        );
+      } catch (e) {}
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
 </html>
