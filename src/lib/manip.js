@@ -137,7 +137,7 @@ export function createManip({
   const partyRndOffset = Math.floor((lastMapDuration + lastMapExtra) / 0.5) + 1;
 
   // Work out the window of indices to build (only the min/max of this set
-  // matter — the table itself is always built ascending from `from` to `to`).
+  // matter - the table itself is always built ascending from `from` to `to`).
   let indices = [
     ...new Set(
       range(0, width / 2)
